@@ -18,10 +18,12 @@ function spectatePlayer(targetPed)
 		--local targetx,targety,targetz = table.unpack(GetEntityCoords(targetPed, false))
 		NetworkSetInSpectatorMode(true, targetPed)	
 		SetEntityInvincible(GetPlayerPed(-1), true) 
+		SetEntityVisible(GetPlayerPed(-1), false, 0)
 	else
 		--local targetx,targety,targetz = table.unpack(GetEntityCoords(targetPed, false))
 		NetworkSetInSpectatorMode(false, targetPed)
 		SetEntityInvincible(GetPlayerPed(-1), false)
+		SetEntityVisible(GetPlayerPed(-1), true, 0)
 	end
 end
 isSpectating = false;
@@ -29,6 +31,13 @@ isSpectating = false;
 AddEventHandler('playerSpawned', function() 
 	TriggerServerEvent('BT:Server:PlayerSpawned')
 	NetworkSetTalkerProximity(proximity)
+end)
+
+RegisterNetEvent('BT:Client:TeleportPlayerToPlayer')
+AddEventHandler('BT:Client:TeleportPlayerToPlayer', function(to)
+	-- Teleport player to:
+	local coords = GetEntityCoords(GetPlayerPed(GetPlayerFromServerId(tonumber(to))), true)
+	SetEntityCoords(GetPlayerPed(-1), coords.x, coords.y, coords.z, 1, 0, 0, 1)
 end)
 
 RegisterNetEvent('BT:Client:Update')
@@ -101,7 +110,8 @@ Citizen.CreateThread(function()
 			end
 			local player = GetPlayerPed(-1)
 			local spectatedCoords = GetEntityCoords(GetPlayerPed(spectatedUserClientID))
-			--SetEntityCoords(player, spectatedCoords.x, spectatedCoords.y, spectatedCoords.z)
+			-- Teleport them above the player 
+			SetEntityCoords(player, spectatedCoords.x, spectatedCoords.y + 10, spectatedCoords.z)
 			if IsControlJustReleased(0, 174) then 
 				-- Go backwards, spectatedUserClientID - 1
 				local players = GetPlayersButSkipMyself()
@@ -134,7 +144,7 @@ Citizen.CreateThread(function()
 				ShowNotification('~b~Spectating ~f~' .. GetPlayerName(spectatedUserClientID))
 				sendMsg('^5Spectating ^0' .. GetPlayerName(spectatedUserClientID))
 			end
-		end 
+		end
 	end
 end)
 
@@ -192,7 +202,7 @@ function DrawText2(text, x, y)
         AddTextComponentString(text)
         DrawText(x, y)
 end
-
+local savedCoords = nil 
 RegisterNetEvent('BT:Client:SpectateID')
 AddEventHandler('BT:Client:SpectateID', function(id)
 	-- Spectate the specified ID 
@@ -209,8 +219,9 @@ AddEventHandler('BT:Client:SpectateID', function(id)
 			end
 		end
 		if found then 
-			-- NEED TO SAVE THEIR LOCATION:
-			-- Save 
+			-- SAVE THEIR LOCATION:
+			savedCoords = GetEntityCoords(PlayerPedId())
+			TriggerServerEvent('BadgerTools:Server:UserTag', false) -- Hide UserTag
 			spectatePlayer(GetPlayerPed(spectatedUserClientID))
 			ShowNotification('~b~Spectating ~f~' .. GetPlayerName(spectatedUserClientID))
 			sendMsg('^5Spectating ^0' .. GetPlayerName(spectatedUserClientID))
@@ -233,7 +244,7 @@ AddEventHandler('BT:Client:SpectateID', function(id)
 			end
 		end
 		if found then 
-			TriggerServerEvent('BadgerTools:UserTag', false) -- Hide UserTag
+			TriggerServerEvent('BadgerTools:Server:UserTag', false) -- Hide UserTag
 			spectatePlayer(GetPlayerPed(spectatedUserClientID))
 			ShowNotification('~b~Spectating ~f~' .. GetPlayerName(spectatedUserClientID))
 			sendMsg('^5Spectating ^0' .. GetPlayerName(spectatedUserClientID))
@@ -255,24 +266,25 @@ AddEventHandler('BT:Client:Spectate', function()
 			spectatedUserClientID = players[1]
 			spectatedUserServerID = GetPlayerServerId(spectatedUserClientID)
 			isSpectating = true 
-			-- NEED TO SAVE THEIR LOCATION:
-			-- Save 
+			-- SAVE THEIR LOCATION:
+			savedCoords = GetEntityCoords(PlayerPedId()) 
+			TriggerServerEvent('BadgerTools:Server:UserTag', false) -- Hide UserTag
 			spectatePlayer(GetPlayerPed(spectatedUserClientID))
 			ShowNotification('~b~Spectating ~f~' .. GetPlayerName(spectatedUserClientID))
 			sendMsg('^5Spectating ^0' .. GetPlayerName(spectatedUserClientID))
-			TriggerServerEvent('BadgerTools:UserTag', false) -- Hide UserTag
 		else
 			sendMsg('^1ERROR: Not enough players on to spectate') 
 		end 
 	else 
 		-- They were spectating, stop their spectate 
-		TriggerServerEvent('BadgerTools:UserTag', true) -- Show UserTag
 		ShowNotification("~g~Success: No longer spectating anyone!")
 		spectatePlayer(GetPlayerPed(-1))
 		sendMsg('^2Success: No longer spectating anyone!')
 		spectatedUserServerID = nil 
 		spectatedUserClientID = nil 
 		isSpectating = false 
+		SetEntityCoords(GetPlayerPed(-1), savedCoords.x, savedCoords.y, savedCoords.z) -- Teleport them
+		TriggerServerEvent('BadgerTools:Server:UserTag', true) -- Show UserTag
 	end
 end)
 

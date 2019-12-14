@@ -75,6 +75,41 @@ RegisterCommand('spectate', function(source, args, rawCommand)
 	end -- End PlayerAceAllowed 
 end)
 
+RegisterCommand('tp', function(source, args, rawCommand)
+	if IsPlayerAceAllowed(source, 'BadgerTools.Commands.Tp') then 
+		if #args < 1 then 
+			-- /tp <id>
+			TriggerClientEvent('chatMessage', source, prefix .. '^1ERROR: Invalid Usage. ^1Proper: /tp <id>')
+			return;
+		end
+		for _, id in pairs(GetPlayers()) do
+			if tonumber(args[1]) == tonumber(id) then  
+				-- /tp <id> 
+				TriggerClientEvent('BT:Client:TeleportPlayerToPlayer', source, id);
+				return;
+			end
+		end
+		TriggerClientEvent('chatMessage', source, prefix .. '^1ERROR: Could not find that player...')
+	end
+end)
+RegisterCommand('summon', function(source, args, rawCommand)
+	if IsPlayerAceAllowed(source, 'BadgerTools.Commands.Summon') then 
+		if #args < 1 then 
+			-- /summon <id>
+			TriggerClientEvent('chatMessage', source, prefix .. '^1ERROR: Invalid Usage. ^1Proper: /summon <id>')
+			return;
+		end
+		for _, id in pairs(GetPlayers()) do
+			if tonumber(args[1]) == tonumber(id) then 
+				-- /tp <id> 
+				TriggerClientEvent('BT:Client:TeleportPlayerToPlayer', id, source);
+				return;
+			end
+		end
+		TriggerClientEvent('chatMessage', source, prefix .. '^1ERROR: Could not find that player...')
+	end
+end)
+
 -- Holds the VoiceTags of all users they are allowed to use 
 voiceTagHandler = {}
 
@@ -165,14 +200,16 @@ AddEventHandler('BT:Server:PlayerSpawned', function()
 	TriggerEvent('BT:Server:UpdateClients')
 end)
 
-RegisterNetEvent('BadgerTools:UserTag')
-AddEventHandler('BadgerTools:UserTag', function(bool)
+RegisterNetEvent('BadgerTools:Server:UserTag')
+AddEventHandler('BadgerTools:Server:UserTag', function(bool)
 	if bool then
 		-- Show tag
 		exports.DiscordTagIDs:ShowUserTag(source)
+		--print("There usertag should be shown now") -- DEBUG - Get rid of
 	else
 		-- Don't show tag
 		exports.DiscordTagIDs:HideUserTag(source)
+		--print("There usertag should be hidden now") -- DEBUG - Get rid of
 	end
 end)
 -- END BadgerTools
