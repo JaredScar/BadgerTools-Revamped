@@ -56,6 +56,27 @@ RegisterCommand('kickRecent', function(source, args, rawCommand)
 	end 
 end)
 
+RegisterCommand('freeze', function(source, args, rawCommand) 
+	-- /freeze <id> 
+	if IsPlayerAceAllowed(source, 'BadgerTools.Commands.Freeze') then 
+		if #args > 0 then 
+			if GetPlayerIdentifiers(tonumber(args[1]))[1] ~= nil then
+				local id = tonumber(args[1])
+				TriggerClientEvent('chatMessage', source, prefix .. 'You have toggled ^5freeze ^3on that player')
+				TriggerClientEvent('BT:Client:FreezePlayer', id)
+			else 
+				-- Not a valid player 
+				TriggerClientEvent('chatMessage', source, prefix .. '^1ERROR: Not a valid player')
+			end
+		else 
+			-- Wrong syntax, it's freeze <id> 
+			TriggerClientEvent('chatMessage', source, prefix .. '^1ERROR: Wrong usage. /freeze <id>')
+		end
+	else 
+		-- They don't have perms 
+	end
+end)
+
 prefix = '^9[^5BadgerTools^9] ^3';
 
 RegisterCommand('spectate', function(source, args, rawCommand)

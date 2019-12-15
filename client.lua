@@ -28,6 +28,16 @@ function spectatePlayer(targetPed)
 end
 isSpectating = false;
 
+frozen = false 
+RegisterNetEvent('BT:Client:FreezePlayer')
+AddEventHandler('BT:Client:FreezePlayer', function()
+	FreezeEntityPosition(GetPlayerPed(-1), not frozen)
+	frozen = not frozen
+	if frozen then 
+		ClearPedTasksImmediately(GetPlayerPed(-1))
+	end
+end)
+
 AddEventHandler('playerSpawned', function() 
 	TriggerServerEvent('BT:Server:PlayerSpawned')
 	NetworkSetTalkerProximity(proximity)
