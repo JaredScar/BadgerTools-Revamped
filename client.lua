@@ -38,7 +38,8 @@ AddEventHandler('BT:Client:FreezePlayer', function()
 	end
 end)
 
-AddEventHandler('playerSpawned', function() 
+Citizen.CreateThread(function()
+	Wait(1000); 
 	TriggerServerEvent('BT:Server:PlayerSpawned')
 	NetworkSetTalkerProximity(proximity)
 end)
@@ -73,7 +74,7 @@ proximity = 15.0
 activeTagsHandler = {}
 colorPerms = {}
 
-prefix = '^9[^5BadgerTools^9] ^3';
+prefix = Config.Prefix;
 function sendMsg(msg) 
 	TriggerEvent('chatMessage', '', {255, 255, 255}, prefix .. '' .. msg)
 end
@@ -98,7 +99,8 @@ Citizen.CreateThread(function()
 		-- LEFT ARROW = 174 RIGHT ARROW = 175
 		if isSpectating then 
 			-- They are spectating, check their controls and teleport them above the player 
-			if GetPlayerPed(spectatedUserClientID) == nil then 
+			local playerIndex = getPlayerIndex(spectatedUserClientID)
+			if playerIndex == nil then 
 				-- Set them to another player to spectate 
 				if GetPlayersCountButSkipMe() >= 1 then 
 					local players = GetPlayersButSkipMyself()
@@ -122,10 +124,10 @@ Citizen.CreateThread(function()
 			local spectatedCoords = GetEntityCoords(GetPlayerPed(spectatedUserClientID))
 			-- Teleport them above the player 
 			SetEntityCoords(player, spectatedCoords.x, spectatedCoords.y + 10, spectatedCoords.z)
+			local players = GetPlayersButSkipMyself()
 			if IsControlJustReleased(0, 174) then 
 				-- Go backwards, spectatedUserClientID - 1
-				local players = GetPlayersButSkipMyself()
-				local index = getPlayerIndex(spectatedUserClientID)
+				local index = getPlayerIndex(spectatedUserClientID) - 1;
 
 				index = index - 1;
 				if players[index] == nil then 
@@ -133,15 +135,14 @@ Citizen.CreateThread(function()
 					index = #players 
 				end
 				local newSpectate = players[index]
-				spectatedUserClientID = newSpectate 
+				spectatedUserClientID = tonumber(newSpectate) 
 				spectatedUserServerID = GetPlayerServerId(newSpectate)
 				spectatePlayer(GetPlayerPed(spectatedUserClientID))
 				ShowNotification('~b~Spectating ~f~' .. GetPlayerName(spectatedUserClientID))
 				sendMsg('^5Spectating ^0' .. GetPlayerName(spectatedUserClientID))
 			elseif IsControlJustReleased(0, 175) then 
 				-- Go forwards, spectatedUserClientID + 1
-				local players = GetPlayersButSkipMyself()
-				local index = getPlayerIndex(spectatedUserClientID)
+				local index = getPlayerIndex(spectatedUserClientID);
 				index = index + 1
 				if players[index] == nil then 
 					-- Can't go forward anymore 
@@ -158,7 +159,11 @@ Citizen.CreateThread(function()
 	end
 end)
 
+colorIndex = 1;
+colors = {"~g~", "~b~", "~y~", "~o~", "~r~", "~p~", "~w~"}
+timer = 500;
 -- Voice Chat Handler --
+ooc = Config.EnableVoiceOOC;
 Citizen.CreateThread(function() 
 	while true do 
 		Citizen.Wait(0)
@@ -169,34 +174,136 @@ Citizen.CreateThread(function()
 		for i=1, #players do 
 			local clientID = players[i]
 			local serverID = GetPlayerServerId(players[i])
-			if NetworkIsPlayerTalking(clientID) then 
-				-- They are talking, draw them on screen 
-				local playerName = GetPlayerName(clientID)
-				local playerCoords2 = GetEntityCoords(GetPlayerPed(clientID))
-				local playerCoords = GetEntityCoords(GetPlayerPed(-1))
-				if(GetDistanceBetweenCoords(playerCoords.x, playerCoords.y, 
-					playerCoords.z, playerCoords2.x, playerCoords2.y, playerCoords2.z, true) <= proximity) then
-					-- They are in distance, draw them 
-					local hasColorPerms = colorPerms[serverID]
-					local activeTag = activeTagsHandler[serverID]
-					local colors = {"~b~", "~g~", "~y~", "~p~", "~c~", "~m~", "~u~", "~o~", "~w~", "~r~"}
-					if not hasColorPerms then 
-						for i = 1, #colors do
-							playerName = playerName:gsub(colors[i], "")
+			timer = timer - 10;
+			if not ooc then 
+				-- Normal talking shit cause they have it disabled 
+				if NetworkIsPlayerTalking(clientID) and activeTagsHandler[serverID] ~= nil then 
+					-- They are talking, draw them on screen 
+					local playerName = GetPlayerName(clientID)
+					local playerCoords2 = GetEntityCoords(GetPlayerPed(clientID))
+					local playerCoords = GetEntityCoords(GetPlayerPed(-1))
+					if(GetDistanceBetweenCoords(playerCoords.x, playerCoords.y, 
+						playerCoords.z, playerCoords2.x, playerCoords2.y, playerCoords2.z, true) <= proximity) then
+						-- They are in distance, draw them 
+						local hasColorPerms = colorPerms[serverID]
+						local activeTag = activeTagsHandler[serverID]
+						if activeTag:find("~RGB~") then 
+							tag = activeTag;
+							tag = tag:gsub("~RGB~", colors[colorIndex]);
+							if timer <= 0 then 
+								colorIndex = colorIndex + 1;
+								--print("Changed color to rainbow color: " .. colors[colorIndex]);
+								if colorIndex >= #colors then 
+									colorIndex = 1;
+								end
+								timer = 3000;
+							end
+							activeTag = tag;
+						else 
+							-- Don't do anything 
+						end
+						local colors = {"~b~", "~g~", "~y~", "~p~", "~c~", "~m~", "~u~", "~o~", "~w~", "~r~"}
+						if not hasColorPerms then 
+							for i = 1, #colors do
+								playerName = playerName:gsub(colors[i], "")
+							end
+						end
+						if activeTag ~= nil then 
+							DrawText2("~f~" .. activeTag .. playerName, .50, 0.050 + (0.040*(counter)))
+							counter = counter + 1
 						end
 					end
-					if activeTag ~= nil then 
-						DrawText2("~f~" .. activeTag .. playerName, .50, 0.005 + (0.025*(counter)))
-						counter = counter + 1
+				end 
+			else 
+				-- They have OOC enabled, set it up 
+				if NetworkIsPlayerTalking(clientID) and activeTagsHandler[serverID] ~= nil then 
+					-- They are talking, draw them on screen 
+					local playerPed = GetPlayerPed(clientID);
+					local isDead = IsEntityDead(playerPed);
+					if not (isDead) then
+						local playerName = GetPlayerName(clientID)
+						local playerCoords2 = GetEntityCoords(GetPlayerPed(clientID))
+						local playerCoords = GetEntityCoords(GetPlayerPed(-1))
+						if(GetDistanceBetweenCoords(playerCoords.x, playerCoords.y, 
+							playerCoords.z, playerCoords2.x, playerCoords2.y, playerCoords2.z, true) <= proximity) then
+							-- They are in distance, draw them 
+							local hasColorPerms = colorPerms[serverID]
+							local activeTag = activeTagsHandler[serverID]
+							if activeTag:find("~RGB~") then 
+								tag = activeTag;
+								tag = tag:gsub("~RGB~", colors[colorIndex]);
+								if timer <= 0 then 
+									colorIndex = colorIndex + 1;
+									--print("Changed color to rainbow color: " .. colors[colorIndex]);
+									if colorIndex >= #colors then 
+										colorIndex = 1;
+									end
+									timer = 3000;
+								end
+								activeTag = tag;
+							else 
+								-- Don't do anything 
+							end
+							local colors = {"~b~", "~g~", "~y~", "~p~", "~c~", "~m~", "~u~", "~o~", "~w~", "~r~"}
+							if not hasColorPerms then 
+								for i = 1, #colors do
+									playerName = playerName:gsub(colors[i], "")
+								end
+							end
+							if activeTag ~= nil then 
+								DrawText2("~f~" .. activeTag .. playerName, .50, 0.050 + (0.040*(counter)))
+								counter = counter + 1
+							end
+						end
+					else 
+						-- They are dead, print their speaking as using OOC 
+						local name = GetPlayerName(clientID);
+						local playerCoords2 = GetEntityCoords(GetPlayerPed(clientID))
+						local playerCoords = GetEntityCoords(GetPlayerPed(-1))
+						if(GetDistanceBetweenCoords(playerCoords.x, playerCoords.y, 
+							playerCoords.z, playerCoords2.x, playerCoords2.y, playerCoords2.z, true) <= proximity) then
+							-- In distance, draw it 
+							DrawText2(Config.OOC_Prefix .. name, .50, 0.050 + (0.040*(counter)))
+							counter = counter + 1
+						end
 					end
 				end
-			end
+			end 
 		end
 	end
 end)
 
+if Config.EnableVoiceOOC then 
+	Citizen.CreateThread(function()
+		while true do 
+			Wait(0);
+			local ped = GetPlayerPed(-1);
+			local isDead = IsEntityDead(ped);
+			if (isDead) then 
+				for i = 1, #Config.OOC_Messages do 
+					DrawText2WithSize(Config.OOC_Messages[i].msg, Config.OOC_Messages[i].size, Config.OOC_Messages[i].x, Config.OOC_Messages[i].y); 
+				end
+			end 
+		end
+	end)
+end 
 spectatedUserServerID = nil 
 spectatedUserClientID = nil 
+
+function DrawText2WithSize(text, size, x, y)
+        SetTextFont(0)
+        SetTextProportional(1)
+        SetTextScale(0.0, size)
+		SetTextJustification(1) -- Center Text
+		SetTextCentre(true)
+        SetTextDropshadow(1, 0, 0, 0, 255)
+        SetTextEdge(1, 0, 0, 0, 255)
+        SetTextDropShadow()
+        SetTextOutline()
+        SetTextEntry("STRING")
+        AddTextComponentString(text)
+        DrawText(x, y)
+end
 
 function DrawText2(text, x, y)
         SetTextFont(0)
@@ -345,11 +452,12 @@ function GetPlayers()
 end
 function GetPlayersButSkipMyself()
     local players = {}
-
+    local ind = 1;
     for _, i in ipairs(GetActivePlayers()) do
         if NetworkIsPlayerActive(i) then
 			if i ~= PlayerId() then
-				table.insert(players, i)
+				players[ind] = i;
+				ind = ind + 1;
 			end
 		end
     end
