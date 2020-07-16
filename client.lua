@@ -19,11 +19,15 @@ function spectatePlayer(targetPed)
 		NetworkSetInSpectatorMode(true, targetPed)	
 		SetEntityInvincible(GetPlayerPed(-1), true) 
 		SetEntityVisible(GetPlayerPed(-1), false, 0)
+		SetEveryoneIgnorePlayer(GetPlayerPed(-1), true)
+		SetEntityCollision(GetPlayerPed(-1), false, false)
 	else
 		--local targetx,targety,targetz = table.unpack(GetEntityCoords(targetPed, false))
 		NetworkSetInSpectatorMode(false, targetPed)
 		SetEntityInvincible(GetPlayerPed(-1), false)
 		SetEntityVisible(GetPlayerPed(-1), true, 0)
+		SetEveryoneIgnorePlayer(GetPlayerPed(-1), false)
+		SetEntityCollision(GetPlayerPed(-1), true, true)
 	end
 end
 isSpectating = false;
