@@ -73,6 +73,48 @@ AddEventHandler('BT:Client:SetTalkerProximity', function(val)
 	print("[BadgerTools] Proximity was set to " .. tostring(val + .0)) 
 end)
 
+RegisterNetEvent('BT:Client:Teleport')
+AddEventHandler('BT:Client:Teleport', function()
+	local waypoint = GetFirstBlipInfoId(8)
+	local ped = GetPlayerPed(-1)
+	local vehicle = GetVehiclePedIsUsing(ped)
+	if vehicle==0 then
+		if DoesBlipExist(waypoint) then 
+			local c = GetBlipInfoIdCoord(waypoint)
+			for i = 0, 1000, 1 do
+				SetEntityCoordsNoOffset(PlayerPedId(), c.x, c.y, ToFloat(i), false, false, false)
+				Citizen.Wait(0)
+				if GetGroundZFor_3dCoord(c.x, c.y, ToFloat(i), cz, false) then
+					cz = ToFloat(i)
+					groundFound = true
+					break
+				end
+			end
+			SetEntityCoords(PlayerPedId(), c.x,c.y,cz)
+		else 
+			ShowNotification('Waypoint isn\'t set')
+		end 
+	else
+		if DoesBlipExist(waypoint) then 
+			local c = GetBlipInfoIdCoord(waypoint)
+			for i = 0, 1000, 1 do
+				SetEntityCoordsNoOffset(vehicle, c.x, c.y, ToFloat(i), false, false, false)
+				Citizen.Wait(0)
+				--groundFound = true
+				if GetGroundZFor_3dCoord(c.x, c.y, ToFloat(i), cz, false) then
+					cz = ToFloat(i)
+					groundFound = true
+					break
+				end
+			end
+			SetEntityCoords(PlayerPedId(), c.x,c.y,cz)
+			TaskWarpPedIntoVehicle(PlayerPedId(), vehicle, -1)
+		else 
+			ShowNotification('Waypoint isn\'t set')
+		end 
+	end
+end)
+
 proximity = 15.0
 
 activeTagsHandler = {}
