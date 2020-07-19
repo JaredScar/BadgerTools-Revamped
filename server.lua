@@ -102,6 +102,13 @@ RegisterCommand('summon', function(source, args, rawCommand)
 	end
 end)
 
+RegisterCommand('tpm', function(source, args, rawCommand) 
+	if IsPlayerAceAllowed(source, 'BadgerTools.Commands.Teleport') then 
+	TriggerClientEvent('BT:Client:Teleport',source)
+	end
+end)
+
+
 -- Holds the VoiceTags of all users they are allowed to use 
 voiceTagHandler = {}
 
