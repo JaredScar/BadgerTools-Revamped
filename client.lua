@@ -173,7 +173,7 @@ Citizen.CreateThread(function()
 			local players = GetPlayersButSkipMyself()
 			if IsControlJustReleased(0, 174) then 
 				-- Go backwards, spectatedUserClientID - 1
-				local index = getPlayerIndex(spectatedUserClientID) - 1;
+				local index = getPlayerIndex(spectatedUserClientID, PlayerId());
 
 				index = index - 1;
 				if players[index] == nil then 
@@ -188,7 +188,7 @@ Citizen.CreateThread(function()
 				sendMsg('^5Spectating ^0' .. GetPlayerName(spectatedUserClientID))
 			elseif IsControlJustReleased(0, 175) then 
 				-- Go forwards, spectatedUserClientID + 1
-				local index = getPlayerIndex(spectatedUserClientID);
+				local index = getPlayerIndex(spectatedUserClientID, PlayerId());
 				index = index + 1
 				if players[index] == nil then 
 					-- Can't go forward anymore 
