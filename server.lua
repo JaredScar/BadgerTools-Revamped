@@ -157,13 +157,6 @@ AddEventHandler('playerDropped', function (reason)
 	TriggerEvent('BT:Server:UpdateClients')
 end)
 allowedColors = {}
-AddEventHandler('onResourceStart', function(resourceName)
-    if (GetCurrentResourceName() == resourceName) then
-    	for _, id in pairs(GetPlayers()) do 
-    		TriggerEvent('BT:Server:PlayerSpawnedID', id);
-    	end
-    end
-end)
 RegisterNetEvent('BT:Server:PlayerSpawnedID')
 AddEventHandler('BT:Server:PlayerSpawnedID', function(id)
 	-- Player joining the server
@@ -186,11 +179,11 @@ AddEventHandler('BT:Server:PlayerSpawnedID', function(id)
 	activeTagsHandler[src] = roleList[1][2]
 	if identifierDiscord ~= nil then
 		-- Discord was found, get their roles 
-		local roleIDs = exports.discord_perms:GetRoles(src)
+		local roleIDs = exports.Badger_Discord_API:GetDiscordRoles(src)
 		if roleIDs ~= false then 
 			for i=1, #roleList do 
 				for j=1, #roleIDs do 
-					if tostring(roleList[i][1]) == tostring(roleIDs[j]) then 
+					if exports.Badger_Discord_API:CheckEqual(roleList[i][1], roleIDs[j]) then
 						-- They have access to this role tag:
 						table.insert(roleTags, roleList[i][2]);
 						activeTagsHandler[src] = roleList[i][2];
@@ -227,11 +220,11 @@ AddEventHandler('BT:Server:PlayerSpawned', function()
 	activeTagsHandler[src] = roleList[1][2]
 	if identifierDiscord ~= nil then
 		-- Discord was found, get their roles 
-		local roleIDs = exports.discord_perms:GetRoles(src)
+		local roleIDs = exports.Badger_Discord_API:GetDiscordRoles(src)
 		if roleIDs ~= false then 
 			for i=1, #roleList do 
 				for j=1, #roleIDs do 
-					if tostring(roleList[i][1]) == tostring(roleIDs[j]) then 
+					if exports.Badger_Discord_API:CheckEqual(roleList[i][1], roleIDs[j]) then
 						-- They have access to this role tag:
 						table.insert(roleTags, roleList[i][2]);
 						activeTagsHandler[src] = roleList[i][2];

@@ -1,14 +1,10 @@
 Config = {
 	Prefix = '^9[^5BadgerTools^9] ^3',
 	RoleList = {
-		{0, "~g~"},  
-		{1, "~g~DONATOR ~w~"},
-		{1, "~g~ULTIMATE ~w~"},  
-		{1, "~r~STAFF ~w~"}, 
-		{1, "~p~MANAGEMENT ~w~"},
-		{1, "~RGB~MANAGEMENT ~w~"},
-		{1, "~o~OWNER ~w~"}, 
-		{1, "~RGB~OWNER ~w~"}, 
+		{0, "~g~Member ~w~"},  
+		{597449475547463681, "~b~Developer ~w~"},
+		{597450498060058624, "~r~STAFF ~w~"},  
+		{"Founder", "~o~FOUNDER ~w~"}, 
 	},
 	OOC_Prefix = '~w~[~p~OOC~w~] ',
 	OOC_Messages = {

@@ -232,10 +232,10 @@ Citizen.CreateThread(function()
 						playerCoords.z, playerCoords2.x, playerCoords2.y, playerCoords2.z, true) <= proximity) then
 						-- They are in distance, draw them 
 						local hasColorPerms = colorPerms[serverID]
-						local activeTag = activeTagsHandler[serverID]
+						local activeTag = activeTagsHandler[serverID]:gsub("{ID}", serverID);
 						if activeTag:find("~RGB~") then 
 							tag = activeTag;
-							tag = tag:gsub("~RGB~", colors[colorIndex]);
+							tag = tag:gsub("~RGB~", colors[colorIndex])
 							if timer <= 0 then 
 								colorIndex = colorIndex + 1;
 								--print("Changed color to rainbow color: " .. colors[colorIndex]);
@@ -274,7 +274,7 @@ Citizen.CreateThread(function()
 							playerCoords.z, playerCoords2.x, playerCoords2.y, playerCoords2.z, true) <= proximity) then
 							-- They are in distance, draw them 
 							local hasColorPerms = colorPerms[serverID]
-							local activeTag = activeTagsHandler[serverID]
+							local activeTag = activeTagsHandler[serverID]:gsub("{ID}", serverID);
 							if activeTag:find("~RGB~") then 
 								tag = activeTag;
 								tag = tag:gsub("~RGB~", colors[colorIndex]);
