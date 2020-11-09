@@ -133,11 +133,13 @@ RegisterCommand('voicetag', function(source, args, rawCommand)
 		local tagSelect = tonumber(args[1]);
 		local foundTag = false;
 		local tags = voiceTagHandler[source];
-		for i=1, #tags do
-			if i == tagSelect then 
-				TriggerClientEvent('chatMessage', source, prefix .. 'You have changed your voice-tag to: ^5' .. tags[i])
-				activeTagsHandler[source] = tags[i]
-				foundTag = true;
+		if tags ~= nil then 
+			for i=1, #tags do
+				if i == tagSelect then 
+					TriggerClientEvent('chatMessage', source, prefix .. 'You have changed your voice-tag to: ^5' .. tags[i])
+					activeTagsHandler[source] = tags[i]
+					foundTag = true;
+				end
 			end
 		end
 		if not foundTag then 
