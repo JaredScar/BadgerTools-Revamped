@@ -119,6 +119,7 @@ proximity = 15.0
 
 activeTagsHandler = {}
 colorPerms = {}
+colors = {"~g~", "~b~", "~y~", "~o~", "~r~", "~p~", "~w~", "~u~", "~m~", "~c~"}
 
 prefix = Config.Prefix;
 function sendMsg(msg) 
@@ -205,9 +206,10 @@ Citizen.CreateThread(function()
 	end
 end)
 
-colorIndex = 1;
-colors = {"~g~", "~b~", "~y~", "~o~", "~r~", "~p~", "~w~"}
-timer = 500;
+colorIndex = {};
+colorTimer = {};
+colorList = Config.ColorPatterns
+timer = 3000;
 -- Voice Chat Handler --
 ooc = Config.EnableVoiceOOC;
 Citizen.CreateThread(function() 
@@ -233,29 +235,46 @@ Citizen.CreateThread(function()
 						-- They are in distance, draw them 
 						local hasColorPerms = colorPerms[serverID]
 						local activeTag = activeTagsHandler[serverID]:gsub("{ID}", serverID);
-						if activeTag:find("~RGB~") then 
-							tag = activeTag;
-							tag = tag:gsub("~RGB~", colors[colorIndex])
-							if timer <= 0 then 
-								colorIndex = colorIndex + 1;
-								--print("Changed color to rainbow color: " .. colors[colorIndex]);
-								if colorIndex >= #colors then 
-									colorIndex = 1;
-								end
-								timer = 3000;
-							end
-							activeTag = tag;
-						else 
-							-- Don't do anything 
-						end
 						local colors = {"~b~", "~g~", "~y~", "~p~", "~c~", "~m~", "~u~", "~o~", "~w~", "~r~"}
 						if not hasColorPerms then 
 							for i = 1, #colors do
 								playerName = playerName:gsub(colors[i], "")
 							end
 						end
+						for colorName, pattern in pairs(colorList) do 
+							if activeTag:find(colorName) then 
+								-- It has this color name
+								local tag = activeTag;
+								if colorTimer[colorName] == nil or colorTimer[colorName] <= 0 then
+									local index = nil;
+									local indexSize = #pattern;
+									if colorIndex[colorName] == nil then 
+										index = 1;
+										colorIndex[colorName] = 1
+										colorTimer[colorName] = 3000;
+									else 
+										index = colorIndex[colorName] + 1;
+										colorIndex[colorName] = index;
+									end
+									if colorTimer[colorName] <= 0 then 
+										colorTimer[colorName] = 3000;
+									end
+									if index > indexSize then 
+										index = 1;
+										colorIndex[colorName] = 1;
+									end
+									tag = tag:gsub(colorName, pattern[ index ]);
+									activeTag = tag;
+								else 
+									-- Start the color 
+									colorTimer[colorName] = colorTimer[colorName] - Config.ColorChangeSpeed;
+									tag = tag:gsub(colorName, pattern[ colorIndex[colorName] ]);
+									activeTag = tag;
+								end
+							end
+						end
 						if activeTag ~= nil then 
-							DrawText2("~f~" .. activeTag .. playerName, .50, 0.050 + (0.040*(counter)))
+							DrawText2("~f~" .. activeTag .. playerName, .50, 0.010 + (0.040*(counter)))
 							counter = counter + 1
 						end
 					end
@@ -275,29 +294,46 @@ Citizen.CreateThread(function()
 							-- They are in distance, draw them 
 							local hasColorPerms = colorPerms[serverID]
 							local activeTag = activeTagsHandler[serverID]:gsub("{ID}", serverID);
-							if activeTag:find("~RGB~") then 
-								tag = activeTag;
-								tag = tag:gsub("~RGB~", colors[colorIndex]);
-								if timer <= 0 then 
-									colorIndex = colorIndex + 1;
-									--print("Changed color to rainbow color: " .. colors[colorIndex]);
-									if colorIndex >= #colors then 
-										colorIndex = 1;
-									end
-									timer = 3000;
-								end
-								activeTag = tag;
-							else 
-								-- Don't do anything 
-							end
-							local colors = {"~b~", "~g~", "~y~", "~p~", "~c~", "~m~", "~u~", "~o~", "~w~", "~r~"}
+							
 							if not hasColorPerms then 
 								for i = 1, #colors do
 									playerName = playerName:gsub(colors[i], "")
 								end
 							end
+							for colorName, pattern in pairs(colorList) do 
+								if activeTag:find(colorName) then 
+									-- It has this color name
+									local tag = activeTag;
+									if colorTimer[colorName] == nil or colorTimer[colorName] <= 0 then
+										local index = nil;
+										local indexSize = #pattern;
+										if colorIndex[colorName] == nil then 
+											index = 1;
+											colorIndex[colorName] = 1
+											colorTimer[colorName] = 3000;
+										else 
+											index = colorIndex[colorName] + 1;
+											colorIndex[colorName] = index;
+										end
+										if colorTimer[colorName] <= 0 then 
+											colorTimer[colorName] = 3000;
+										end
+										if index > indexSize then 
+											index = 1;
+											colorIndex[colorName] = 1;
+										end
+										tag = tag:gsub(colorName, pattern[ index ]);
+										activeTag = tag;
+									else 
+										-- Start the color 
+										colorTimer[colorName] = colorTimer[colorName] - Config.ColorChangeSpeed;
+										tag = tag:gsub(colorName, pattern[ colorIndex[colorName] ]);
+										activeTag = tag;
+									end
+								end
+							end
 							if activeTag ~= nil then 
-								DrawText2("~f~" .. activeTag .. playerName, .50, 0.050 + (0.040*(counter)))
+								DrawText2("~f~" .. activeTag .. playerName, .50, 0.010 + (0.040*(counter)))
 								counter = counter + 1
 							end
 						end
@@ -309,7 +345,7 @@ Citizen.CreateThread(function()
 						if(GetDistanceBetweenCoords(playerCoords.x, playerCoords.y, 
 							playerCoords.z, playerCoords2.x, playerCoords2.y, playerCoords2.z, true) <= proximity) then
 							-- In distance, draw it 
-							DrawText2(Config.OOC_Prefix .. name, .50, 0.050 + (0.040*(counter)))
+							DrawText2(Config.OOC_Prefix .. name, .50, 0.010 + (0.040*(counter)))
 							counter = counter + 1
 						end
 					end
