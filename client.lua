@@ -58,7 +58,6 @@ end)
 RegisterNetEvent('BT:Client:Update')
 AddEventHandler('BT:Client:Update', function(tagHandler) 
 	activeTagsHandler = tagHandler
-	print("[BadgerTools] I got updated") -- DEBUG - Get rid of 
 end)
 
 RegisterNetEvent('BT:Client:UpdateColors')
@@ -70,7 +69,6 @@ RegisterNetEvent('BT:Client:SetTalkerProximity')
 AddEventHandler('BT:Client:SetTalkerProximity', function(val)
 	NetworkSetTalkerProximity(val + .0)
 	proximity = val + .0
-	print("[BadgerTools] Proximity was set to " .. tostring(val + .0)) 
 end)
 
 RegisterNetEvent('BT:Client:Teleport')
